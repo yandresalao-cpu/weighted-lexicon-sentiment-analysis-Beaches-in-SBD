@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Analisis Sentimen Wisata Pantai Sumba Barat Daya</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<header class="hero">
+  <div class="overlay"></div>
+  <nav class="navbar">
+    <div class="brand">🏖️ Sentimen Pantai SBD</div>
+    <div class="nav">
+      <a href="#analisis">Analisis</a>
+      <a href="#indikator">Indikator</a>
+      <a href="#panduan">Panduan</a>
+    </div>
+  </nav>
+
+  <section class="hero-content">
+    <div class="hero-text">
+      <span class="badge">Weighted Lexicon-Based Sentiment Analysis</span>
+      <h1>Analisis Sentimen Komentar Wisatawan Obyek Wisata Pantai</h1>
+      <p>
+        Sistem ini membaca komentar berbahasa Indonesia dan mengelompokkannya ke dalam
+        sentimen <b>positif</b>, <b>negatif</b>, atau <b>netral</b> berdasarkan leksikon berbobot,
+        penyesuaian konteks negasi dan intensifier, serta faktor panjang komentar dan jumlah indikator.
+      </p>
+      <a class="btn primary" href="#analisis">Mulai Analisis</a>
+    </div>
+
+    <div class="photo-card">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/21/Pantai_Mandorak%2C_Sumba_Barat_Daya.jpg/900px-Pantai_Mandorak%2C_Sumba_Barat_Daya.jpg"
+           onerror="this.src='assets/pantai-sumba-fallback.svg'"
+           alt="Pantai Mandorak, Sumba Barat Daya">
+      <p>Pantai Mandorak, Sumba Barat Daya</p>
+    </div>
+  </section>
+</header>
+
+<main>
+  <section class="cards" id="indikator">
+    <div class="mini-card positive">
+      <h3>Positif</h3>
+      <p>Indikator diberi bobot positif (+1 sampai +4) sesuai kekuatan evaluasinya dalam leksikon.</p>
+    </div>
+    <div class="mini-card negative">
+      <h3>Negatif</h3>
+      <p>Indikator diberi bobot negatif (−1 sampai −5) sesuai kekuatan evaluasinya dalam leksikon.</p>
+    </div>
+    <div class="mini-card neutral">
+      <h3>Netral</h3>
+      <p>Indikator netral dicatat sebagai informasi deskriptif dan tidak menambah atau mengurangi skor polaritas.</p>
+    </div>
+  </section>
+
+  <section class="analysis" id="analisis">
+    <div class="analysis-card">
+      <div class="title-row">
+        <span>✍️</span>
+        <div>
+          <h2>Analisis Komentar Wisatawan</h2>
+          <p>Tempelkan komentar dari Google Maps/review wisatawan, lalu klik Analisis Sentimen.</p>
+        </div>
+      </div>
+
+      <textarea id="commentInput" placeholder="Contoh: Pantai ini sangat indah, airnya jernih, dan suasananya nyaman. Namun akses jalan masih buruk dan ada sampah di area parkir."></textarea>
+
+      <div class="button-row">
+        <button class="btn primary" onclick="analyzeSentiment()">Analisis Sentimen</button>
+        <button class="btn light" onclick="loadSample('positive')">Contoh Positif</button>
+        <button class="btn light" onclick="loadSample('negative')">Contoh Negatif</button>
+        <button class="btn light" onclick="loadSample('neutral')">Contoh Netral</button>
+        <button class="btn light" onclick="loadSample('mixed')">Contoh Campuran</button>
+        <button class="btn danger" onclick="clearText()">Bersihkan</button>
+      </div>
+
+      <div id="resultBox" class="result-box hidden">
+        <div class="result-top">
+          <h3>Hasil Analisis</h3>
+          <span id="badgeResult">-</span>
+        </div>
+
+        <div class="result-grid">
+          <div class="result-item"><span>Label</span><h2 id="sentimentLabel">-</h2></div>
+          <div class="result-item"><span>Skor Akhir</span><h2 id="sentimentScore">0</h2></div>
+          <div class="result-item"><span>Jumlah Indikator Positif</span><h2 id="positiveCount">0</h2></div>
+          <div class="result-item"><span>Jumlah Indikator Negatif</span><h2 id="negativeCount">0</h2></div>
+          <div class="result-item"><span>Jumlah Indikator Netral</span><h2 id="neutralCount">0</h2></div>
+          <div class="result-item"><span>Jumlah Kata</span><h2 id="wordCount">0</h2></div>
+        </div>
+
+        <div class="bar-wrap">
+          <p>Kekuatan Sentimen</p>
+          <div class="bar"><div id="barFill"></div></div>
+          <small>Visualisasi berdasarkan besar absolut Final Score; bukan komponen tambahan dalam rumus.</small>
+        </div>
+
+        <div class="interpretation">
+          <h4>Interpretasi</h4>
+          <p id="interpretationText"></p>
+        </div>
+
+        <div class="detected">
+          <h4>Indikator dan Bobot yang Terdeteksi</h4>
+          <p><b>Positif:</b> <span id="positiveTerms">-</span></p>
+          <p><b>Negatif:</b> <span id="negativeTerms">-</span></p>
+          <p><b>Netral:</b> <span id="neutralTerms">-</span></p>
+          <small>Bobot indikator netral tidak dimasukkan ke skor polaritas.</small>
+        </div>
+
+        <div class="calculation-detail">
+          <div class="calc-title-row">
+            <div>
+              <h4>Detail Operasi Perhitungan</h4>
+              <p>Jejak perhitungan Weighted Lexicon-Based Sentiment Analysis.</p>
+            </div>
+            <span class="audit-badge">AUDIT TRAIL</span>
+          </div>
+
+          <div class="formula-box">
+            <div class="formula-main">FinalScore = S<sub>c</sub> × F<sub>k</sub> × F<sub>i</sub></div>
+            <div class="formula-sub">S<sub>c</sub> = (ΣP + ΣN) + A<sub>neg</sub> + A<sub>int</sub></div>
+          </div>
+
+          <div class="calc-grid">
+            <div class="calc-row"><span>Σ Bobot Positif (ΣP)</span><strong id="calcPositiveScore">0</strong></div>
+            <div class="calc-row"><span>Σ Bobot Negatif (ΣN)</span><strong id="calcNegativeScore">0</strong></div>
+            <div class="calc-row"><span>Skor Awal (S₀ = ΣP + ΣN)</span><strong id="calcBaseScore">0</strong></div>
+            <div class="calc-row"><span>Koreksi Negasi (Aneg)</span><strong id="calcNegation">0</strong></div>
+            <div class="calc-row"><span>Koreksi Intensifier (Aint)</span><strong id="calcIntensifier">0</strong></div>
+            <div class="calc-row"><span>Skor Setelah Konteks (Sc)</span><strong id="calcContextScore">0</strong></div>
+            <div class="calc-row"><span>Fk — Faktor Panjang Komentar</span><strong id="calcFk">1</strong></div>
+            <div class="calc-row"><span>Fi — Faktor Jumlah Indikator</span><strong id="calcFi">1</strong></div>
+          </div>
+
+          <div class="calc-explanation">
+            <p><b>Operasi Fk:</b> <span id="calcFkExplanation">-</span></p>
+            <p><b>Operasi Fi:</b> <span id="calcFiExplanation">-</span></p>
+          </div>
+
+          <div class="calc-final-card">
+            <span>Operasi Final Score</span>
+            <strong id="calcFormula">-</strong>
+          </div>
+
+          <div class="threshold-card">
+            <span>Klasifikasi Threshold</span>
+            <strong id="calcThreshold">-</strong>
+          </div>
+
+          <div class="context-detail">
+            <h5>Penyesuaian Konteks: Negasi & Intensifier</h5>
+            <ul id="contextCalculationList"></ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="guide" id="panduan">
+    <h2>Panduan Singkat</h2>
+    <div class="guide-grid">
+      <div>1. Salin komentar wisatawan dari Google Maps atau sumber ulasan.</div>
+      <div>2. Tempelkan komentar pada kolom analisis.</div>
+      <div>3. Klik Analisis Sentimen.</div>
+      <div>4. Baca indikator, bobot, skor awal, penyesuaian konteks, Fk, Fi, Final Score, dan label.</div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <p>© 2026 | Website Analisis Sentimen Wisata Pantai Sumba Barat Daya</p>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
